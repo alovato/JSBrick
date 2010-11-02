@@ -1,4 +1,5 @@
 const debugmode = true;
+var temp_result = 0; //For calculation
 //Lets define our flags
 const flag_zero = 0x80; //set when last op had result of 0
 const flag_operation = 0x40; //set if last op was subtraction
@@ -134,13 +135,13 @@ opcodes[0xF2] = function LDA_AT_C() /*0xF2*/ { A = rb(0xFF00+C); lastClock = 8; 
 //LD (C), A
 opcodes[0xE2] = function LD_AT_C_A() /*0xE2*/ { wb(0xFF00+C, A); lastClock = 8; }
 //LD A, (HLD)
-opcodes[0x3A] = function LDA_AT_HLD() /*0x3A*/ { A = rb((H<<8)+L); temp_resullastClock = ((H<<8)+L - 1); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
+opcodes[0x3A] = function LDA_AT_HLD() /*0x3A*/ { A = rb((H<<8)+L); temp_result = ((H<<8)+L - 1); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
 //LD (HLD), A
-opcodes[0x32] = function LD_AT_HLD_A() /*0x32*/ { wb((H<<8)+L, A); temp_resullastClock = ((H<<8)+L - 1, A); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
+opcodes[0x32] = function LD_AT_HLD_A() /*0x32*/ { wb((H<<8)+L, A); temp_result = ((H<<8)+L - 1, A); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
 //LD A, (HLI)
-opcodes[0x2A] = function LDA_AT_HLI() /*0x2A*/ { A = rb((H<<8)+L); temp_resullastClock = ((H<<8)+L + 1); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
+opcodes[0x2A] = function LDA_AT_HLI() /*0x2A*/ { A = rb((H<<8)+L); temp_result = ((H<<8)+L + 1); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
 //LD (HLI), A
-opcodes[0x22] = function LD_AT_HLI_A() /*0x22*/ { wb((H<<8)+L, A); temp_resullastClock = ((H<<8)+L + 1, A); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
+opcodes[0x22] = function LD_AT_HLI_A() /*0x22*/ { wb((H<<8)+L, A); temp_result = ((H<<8)+L + 1, A); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
 //LD (n), A
 opcodes[0xE0] = function LD_n_A() /*0xE0*/ { wb(0xFF00+rb(PC), A); PC++; lastClock = 12; }
 //LD A, (n)
@@ -154,8 +155,8 @@ opcodes[0x31] = function LDSP_nn() /*0x31*/ { SP = rw(PC); PC+=2; lastClock = 12
 opcodes[0xF9] = function LDSP_HL() /*0xF9*/ { SP = (H<<8)+L; lastClock = 8; }
 //LD HL, SP+n
 opcodes[0xF8] = function LDHL_SP_n() /*0xF8*/ {
-	temp_resullastClock = rb(PC);
-	if(temp_result > 127) temp_resullastClock = -((~temp_result+1)&0xFF);
+	temp_result = rb(PC);
+	if(temp_result > 127) temp_result = -((~temp_result+1)&0xFF);
 	PC++; temp_result += SP;
 	H = (temp_result>>8) & 0xFF; L = temp_result & 0xFF;
 	lastClock = 12;
@@ -173,7 +174,7 @@ opcodes[0xD1] = function POPDE() /*D1*/ { E = rb(SP); SP++; D = rb(SP); SP++; la
 opcodes[0xE1] = function POPHL() /*E1*/ { L = rb(SP); SP++; H = rb(SP); SP++; lastClock = 12; }
 //ADD A, n  - IGNORES HALF CARRY, MAY NEED TO BE CHANGED
 opcodes[0x87] = function ADD_A_A() /*0x87*/ {
-	temp_resullastClock = A + A; //Addition
+	temp_result = A + A; //Addition
 	F = 0; //Clear flags
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -181,7 +182,7 @@ opcodes[0x87] = function ADD_A_A() /*0x87*/ {
 	lastClock = 4;
 }
 opcodes[0x80] = function ADD_A_B() /*0x80*/ {
-	temp_resullastClock = A + B; //Addition
+	temp_result = A + B; //Addition
 	F = 0; //Clear flags
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -189,7 +190,7 @@ opcodes[0x80] = function ADD_A_B() /*0x80*/ {
 	lastClock = 4;
 }
 opcodes[0x81] = function ADD_A_C() /*0x81*/ {
-	temp_resullastClock = A + C; //Addition
+	temp_result = A + C; //Addition
 	F = 0; //Clear flags
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -197,7 +198,7 @@ opcodes[0x81] = function ADD_A_C() /*0x81*/ {
 	lastClock = 4;
 }
 opcodes[0x82] = function ADD_A_D() /*0x82*/ {
-	temp_resullastClock = A + D; //Addition
+	temp_result = A + D; //Addition
 	F = 0; //Clear flags
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -205,7 +206,7 @@ opcodes[0x82] = function ADD_A_D() /*0x82*/ {
 	lastClock = 4;
 }
 opcodes[0x83] = function ADD_A_E() /*0x83*/ {
-	temp_resullastClock = A + E; //Addition
+	temp_result = A + E; //Addition
 	F = 0; //Clear flags
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -213,7 +214,7 @@ opcodes[0x83] = function ADD_A_E() /*0x83*/ {
 	lastClock = 4;
 }
 opcodes[0x84] = function ADD_A_H() /*0x84*/ {
-	temp_resullastClock = A + H; //Addition
+	temp_result = A + H; //Addition
 	F = 0; //Clear flags
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -221,7 +222,7 @@ opcodes[0x84] = function ADD_A_H() /*0x84*/ {
 	lastClock = 4;
 }
 opcodes[0x85] = function ADD_A_L() /*0x85*/ {
-	temp_resullastClock = A + E; //Addition
+	temp_result = A + E; //Addition
 	F = 0; //Clear flags
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -229,7 +230,7 @@ opcodes[0x85] = function ADD_A_L() /*0x85*/ {
 	lastClock = 4;
 }
 opcodes[0x86] = function ADD_A_AT_HL() /*0x86*/ {
-	temp_resullastClock = A + rb((H<<8)+L); //Addition
+	temp_result = A + rb((H<<8)+L); //Addition
 	F = 0; //Clear flags
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -237,7 +238,7 @@ opcodes[0x86] = function ADD_A_AT_HL() /*0x86*/ {
 	lastClock = 8;
 }
 opcodes[0xC6] = function ADD_A_n() /*0xC6*/ {
-	temp_resullastClock = A + rb(PC); //Addition
+	temp_result = A + rb(PC); //Addition
 	PC++;
 	F = 0; //Clear flags
 	if(!(A & 0xFF)) F |= flag_zero;
@@ -246,7 +247,7 @@ opcodes[0xC6] = function ADD_A_n() /*0xC6*/ {
 	lastClock = 8;
 }
 opcodes[0x8F] = function ADC_A_A() /*0x8F*/ {
-	temp_resullastClock = A + A;
+	temp_result = A + A;
 	temp_result += (F&flag_carry)?1:0;
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -254,7 +255,7 @@ opcodes[0x8F] = function ADC_A_A() /*0x8F*/ {
 	lastClock = 4;	
 }
 opcodes[0x88] = function ADC_A_B() /*0x88*/ {
-	temp_resullastClock = A + B;
+	temp_result = A + B;
 	temp_result += (F&flag_carry)?1:0;
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -262,7 +263,7 @@ opcodes[0x88] = function ADC_A_B() /*0x88*/ {
 	lastClock = 4;	
 }
 opcodes[0x89] = function ADC_A_C() /*0x89*/ {
-	temp_resullastClock = A + C;
+	temp_result = A + C;
 	temp_result += (F&flag_carry)?1:0;
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -270,7 +271,7 @@ opcodes[0x89] = function ADC_A_C() /*0x89*/ {
 	lastClock = 4;	
 }
 opcodes[0x8A] = function ADC_A_D() /*0x8A*/ {
-	temp_resullastClock = A + D;
+	temp_result = A + D;
 	temp_result += (F&flag_carry)?1:0;
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -278,7 +279,7 @@ opcodes[0x8A] = function ADC_A_D() /*0x8A*/ {
 	lastClock = 4;	
 }
 opcodes[0x8B] = function ADC_A_E() /*0x8B*/ {
-	temp_resullastClock = A + E;
+	temp_result = A + E;
 	temp_result += (F&flag_carry)?1:0;
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -286,7 +287,7 @@ opcodes[0x8B] = function ADC_A_E() /*0x8B*/ {
 	lastClock = 4;	
 }
 opcodes[0x8C] = function ADC_A_H() /*0x8C*/ {
-	temp_resullastClock = A + H;
+	temp_result = A + H;
 	temp_result += (F&flag_carry)?1:0;
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -294,7 +295,7 @@ opcodes[0x8C] = function ADC_A_H() /*0x8C*/ {
 	lastClock = 4;	
 }
 opcodes[0x8D] = function ADC_A_L() /*0x8D*/ {
-	temp_resullastClock = A + L;
+	temp_result = A + L;
 	temp_result += (F&flag_carry)?1:0;
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -302,7 +303,7 @@ opcodes[0x8D] = function ADC_A_L() /*0x8D*/ {
 	lastClock = 4;	
 }
 opcodes[0x8E] = function ADC_A_AT_HL() /*0x8E*/ {
-	temp_resullastClock = A + rb((H<<8)+L);
+	temp_result = A + rb((H<<8)+L);
 	temp_result += (F&flag_carry)?1:0;
 	if(!(A & 0xFF)) F |= flag_zero;
 	if(temp_result > 0xFF) F |= flag_carry;
@@ -310,7 +311,7 @@ opcodes[0x8E] = function ADC_A_AT_HL() /*0x8E*/ {
 	lastClock = 8;	
 }
 opcodes[0xCE] = function ADC_A_n() /*0xCE*/ {
-	temp_resullastClock = A + rb(PC);
+	temp_result = A + rb(PC);
 	PC++;
 	temp_result += (F&flag_carry)?1:0;
 	if(!(A & 0xFF)) F |= flag_zero;
@@ -328,7 +329,7 @@ opcodes[0x0C] = function INC_C() /*0x0C*/ { C++; if(!(C & 0xFF)) F|=flag_zero; F
 opcodes[0x05] = function DEC_B() /*0x05*/ { B--; if(!(B & 0xFF)) F|=flag_zero; F&=!flag_carry; lastClock = 4; }
 
 opcodes[0xC3] = function JP_nn() /*0xC3*/ {	PC = rw_lsb(PC); lastClock = 12; }
-opcodes[0x20] = function JR_NZ_n() /*0x20*/ { temp_resullastClock = rb(PC); if(temp_result>0x80) temp_resullastClock = -((~temp_result+1)&255); PC++; T=8; if(!(F&flag_zero)) { PC += temp_result; lastClock = 12; };}
+opcodes[0x20] = function JR_NZ_n() /*0x20*/ { temp_result = rb(PC); if(temp_result>0x80) temp_result = -((~temp_result+1)&255); PC++; T=8; if(!(F&flag_zero)) { PC += temp_result; lastClock = 12; };}
 
 opcodes[0x00] = function NOP() { lastClock = 4; }
 
