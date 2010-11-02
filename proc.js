@@ -489,8 +489,10 @@ opcodes[0xB8] = function CP_B() {
     else {    
         F &= !flag_zero;
     }
-    F != flag_operation; 
-    lastclock = 4;
+    if (A < B) {
+        F |= flag_operation; 
+    }
+ lastclock = 4;
 }
 
 opcodes[0xB9] = function CP_C() {
@@ -500,7 +502,162 @@ opcodes[0xB9] = function CP_C() {
     else {    
         F &= !flag_zero;
     }
-    F != flag_operation; 
+    if (A < C) {
+        F |= flag_operation; 
+    }
+  lastclock = 4;
+}
+opcodes[0xBA] = function CP_D() {
+    if (D == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < D) {
+        F |= flag_operation; 
+    }
+   lastclock = 4;
+}
+
+opcodes[0xBB] = function CP_E() {
+    if (E == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < E) {
+        F |= flag_operation; 
+    }
+    lastclock = 4;
+}
+
+opcodes[0xBC] = function CP_H() {
+    if (H == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < H) {
+        F |= flag_operation; 
+    }
+    lastclock = 4;
+}
+
+opcodes[0xBD] = function CP_L() {
+    if (L == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < L) {
+        F |= flag_operation; 
+    }
+    lastclock = 4;
+}
+
+opcodes[0xBE] = function CP_AT_HL() {
+    temp_result = rb((H<<8)+L);
+    if (temp_result == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < temp_result) {
+        F |= flag_operation; 
+    }
+    lastclock = 8;
+}
+
+opcodes[0xFE] = function CP_A_n() {
+    temp_result = rb(PC);
+    PC++;
+    if (temp_result == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < temp_result) {
+        F |= flag_operation; 
+    }
+    lastclock = 8;
+}
+
+opcodes[0x3C] = function INC_A {
+    A++;
+    if (A == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x04] = function INC_B {
+    B++;
+    if (B == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+opcodes[0x0C] = function INC_C {
+    C++;
+    if (C == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+opcodes[0x14] = function INC_D {
+    D++;
+    if (D == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x1C] = function INC_E {
+    E++;
+    if (E == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+opcodes[0x24] = function INC_H {
+    H++;
+    if (H == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x2C] = function INC_L {
+    L++;
+    if (L == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x2C] = function INC_AT_HL {
+    temp_result = rb((H<<8)+L);
+    temp_result++;
+    wb((H<<8)+L, temp_result);
+    // Write back result
+
+    if (temp_result == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
     lastclock = 4;
 }
 
