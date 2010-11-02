@@ -319,7 +319,151 @@ opcodes[0xCE] = function ADC_A_n() /*0xCE*/ {
 	A = temp_result & 0xFF;
 	lastClock = 8;	
 }
-
+opcodes[0x97] = function SUB_A_A() {
+	temp_result = A - A; //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x90] = function SUB_A_B() {
+	temp_result = A - B; //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x91] = function SUB_A_C() {
+	temp_result = A - C; //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x92] = function SUB_A_D() {
+	temp_result = A - D; //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x93] = function SUB_A_E() {
+	temp_result = A - E; //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x94] = function SUB_A_H() {
+	temp_result = A - H; //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x95] = function SUB_A_L() {
+	temp_result = A - L; //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x96] = function SUB_A_AT_HL() {
+	temp_result = A - rb((H<<8)+L); //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 8;
+}
+opcodes[0x96] = function SUB_A_n() {
+	temp_result = A - rb(PC); //Subtraction
+	PC++;
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 8;
+}
+opcodes[0x9F] = function SBC_A_A() {
+	temp_result = A - (A + (F&flag_carry)?1:0); //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x98] = function SBC_A_B() {
+	temp_result = A - (B + (F&flag_carry)?1:0); //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x99] = function SBC_A_C() {
+	temp_result = A - (C + (F&flag_carry)?1:0); //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x9A] = function SBC_A_D() {
+	temp_result = A - (D + (F&flag_carry)?1:0); //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x9B] = function SBC_A_E() {
+	temp_result = A - (E + (F&flag_carry)?1:0); //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x9C] = function SBC_A_H() {
+	temp_result = A - (H + (F&flag_carry)?1:0); //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
+opcodes[0x9D] = function SBC_A_L() {
+	temp_result = A - (L + (F&flag_carry)?1:0); //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
 
 
 opcodes[0xAF] = function XOR_A() /*0xAF*/ { A ^= A; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
