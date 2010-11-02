@@ -464,7 +464,15 @@ opcodes[0x9D] = function SBC_A_L() {
 	A = temp_result & 0xFF;
 	lastClock = 4;
 }
-
+opcodes[0x9E] = function SBC_A_AT_HL() {
+	temp_result = A - (rb((H<<8)+L) + (F&flag_carry)?1:0); //Subtraction
+	F = 0; //Clear flags
+	if(!(A & 0xFF)) F |= flag_zero;
+	if(temp_result < 0) F |= flag_carry;
+	F |= flag_operation;
+	A = temp_result & 0xFF;
+	lastClock = 4;
+}
 
 opcodes[0xAF] = function XOR_A() /*0xAF*/ { A ^= A; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
 
