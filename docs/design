@@ -1,0 +1,27 @@
+=== Tasks ===
+Create main page Javascript - Aaron
+Implement MMU operations - Cameron
+Start CPU instructions - Austin
+Implement executeCPUInstruction - Shane
+Look into screen drawing - Aaron
+
+
+
+=== Dispather Design ===
+- Call LoadROM
+- Initialize program counter
+- ExcecuteCPUInstruction()
+- ???
+- Profit
+
+=== MMU Design ===
+LoadROM()
+ReadByte()
+WriteByte()
+ReadWord()
+WriteWord()
+SwapBank()
+
+=== CPU Design ===
+ExecuteCPUInstruction 
+
