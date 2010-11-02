@@ -658,7 +658,84 @@ opcodes[0x2C] = function INC_AT_HL {
        F |= flag_zero; 
     }
     F &= !flag_operation;
+    lastclock = 12;
+}
+
+opcodes[0x3D] = function DEC_A {
+    A--;
+    if (A == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
     lastclock = 4;
+}
+
+opcodes[0x05] = function DEC_B {
+    B--;
+    if (B == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x0D] = function DEC_C {
+    C--;
+    if (C == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x15] = function DEC_D {
+    D--;
+    if (D == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x1D] = function DEC_E {
+    E--;
+    if (E == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+
+opcodes[0x25] = function DEC_H {
+    H--;
+    if (H == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x2D] = function DEC_L {
+    L--;
+    if (L == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x2C] = function DEC_AT_HL {
+    temp_result = rb((H<<8)+L);
+    temp_result--;
+    wb((H<<8)+L, temp_result);
+    // Write back result
+
+    if (temp_result == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 12;
 }
 
 opcodes[0xAF] = function XOR_A() /*0xAF*/ { A ^= A; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
