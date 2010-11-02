@@ -504,14 +504,100 @@ opcodes[0xB9] = function CP_C() {
     lastclock = 4;
 }
 
-opcodes[0xAF] = function XOR_A() /*0xAF*/ { A ^= A; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
+opcodes[0xA7] = function AND_A() { A = A & A; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xA0] = function AND_B() { A = A & B; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xA1] = function AND_C() { A = A & C; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xA2] = function AND_D() { A = A & D; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xA3] = function AND_E() { A = A & E; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xA4] = function AND_H() { A = A & H; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xA5] = function AND_L() { A = A & L; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xA6] = function AND_AT_HL() { A = A & rb((H<<8)+L); F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 8; }
+opcodes[0xE6] = function AND_n() { A = A & rb(PC); PC++; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 8; }
+
+opcodes[0xB7] = function OR_A() { A = A | A; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xB0] = function OR_B() { A = A | B; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xB1] = function OR_C() { A = A | C; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xB2] = function OR_D() { A = A | D; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xB3] = function OR_E() { A = A | E; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xB4] = function OR_H() { A = A | H; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xB5] = function OR_L() { A = A | L; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
+opcodes[0xB6] = function OR_AT_HL() { A = A | rb((H<<8)+L); F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 8; }
+opcodes[0xF6] = function OR_n() { A = A | rb(PC); PC++; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 8; }
+
+opcodes[0xAF] = function XOR_A() { A = A ^ A; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
+opcodes[0xA8] = function XOR_B() { A = A ^ B; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
+opcodes[0xA9] = function XOR_C() { A = A ^ C; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
+opcodes[0xAA] = function XOR_D() { A = A ^ D; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
+opcodes[0xAB] = function XOR_E() { A = A ^ E; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
+opcodes[0xAC] = function XOR_H() { A = A ^ H; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
+opcodes[0xAD] = function XOR_L() { A = A ^ L; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
+opcodes[0xAE] = function XOR_AT_HL() { A = A ^ rb((H<<8)+L); F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 8; }
+opcodes[0xEE] = function XOR_n() { A = A ^ rb(PC); PC++; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 8; }
 
 opcodes[0x0C] = function INC_C() /*0x0C*/ { C++; if(!(C & 0xFF)) F|=flag_zero; F&=!flag_carry; lastClock = 4; }
 
 opcodes[0x05] = function DEC_B() /*0x05*/ { B--; if(!(B & 0xFF)) F|=flag_zero; F&=!flag_carry; lastClock = 4; }
 
-opcodes[0xC3] = function JP_nn() /*0xC3*/ {	PC = rw_lsb(PC); lastClock = 12; }
-opcodes[0x20] = function JR_NZ_n() /*0x20*/ { temp_result = rb(PC); if(temp_result>0x80) temp_result = -((~temp_result+1)&255); PC++; T=8; if(!(F&flag_zero)) { PC += temp_result; lastClock = 12; };}
+//JP cc,nn
+opcodes[0xC3] = function JP_nn() { PC = rw_lsb(PC); lastClock = 12; }
+opcodes[0xC2] = function JP_NZ_nn(){ if(!(F & flag_zero)) { PC = rw_lsb(PC); } lastClock = 12; }
+opcodes[0xCA] = function JP_Z_nn(){ if(F & flag_zero) { PC = rw_lsb(PC); } lastClock = 12; }
+opcodes[0xD2] = function JP_NC_nn(){ if(!(F & flag_carry)) { PC = rw_lsb(PC); } lastClock = 12; }
+//JP (HL)
+opcodes[0xE9] = function JP_AT_HL() { PC = (H<<8 + L); lastClock = 4; }
+//JR n
+opcodes[0x18] = function JR_n() {
+	temp_result = rb(PC);
+	if(temp_result>0x80) temp_result = -((~temp_result+1)&255);
+	PC++;
+	PC += temp_result;
+	lastClock = 8;
+}
+//JR cc,n
+opcodes[0x20] = function JR_NZ_n() {
+	temp_result = rb(PC);
+	if(temp_result>0x80) temp_result = -((~temp_result+1)&255);
+	PC++;
+	lastClock = 8;
+	if(!(F&flag_zero))
+	{
+		PC += temp_result;
+		lastClock = 12;
+	}
+}
+opcodes[0x28] = function JR_Z_n() {
+	temp_result = rb(PC);
+	if(temp_result>0x80) temp_result = -((~temp_result+1)&255);
+	PC++;
+	lastClock = 8;
+	if(F&flag_zero)
+	{
+		PC += temp_result;
+		lastClock = 12;
+	}
+}
+opcodes[0x30] = function JR_NC_n() {
+	temp_result = rb(PC);
+	if(temp_result>0x80) temp_result = -((~temp_result+1)&255);
+	PC++;
+	lastClock = 8;
+	if(!(F&flag_carry))
+	{
+		PC += temp_result;
+		lastClock = 12;
+	}
+}
+opcodes[0x38] = function JR_C_n() {
+	temp_result = rb(PC);
+	if(temp_result>0x80) temp_result = -((~temp_result+1)&255);
+	PC++;
+	lastClock = 8;
+	if(F&flag_carry)
+	{
+		PC += temp_result;
+		lastClock = 12;
+	}
+}
 
 opcodes[0x00] = function NOP() { lastClock = 4; }
 
