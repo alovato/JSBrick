@@ -835,6 +835,48 @@ opcodes[0x38] = function JR_C_n() {
 
 opcodes[0x00] = function NOP() { lastClock = 4; }
 
+opcodes[0xCB] = function CB()
+{
+   PC++;
+   var next = rb(PC);
+   switch(next)
+   {
+      case 0x37:
+         lastClock = 8;
+         A =  ((A<<4)|(A>>4))&0xFF;
+         break;
+      case 0x30:
+         lastClock = 8;
+         B = ((B<<4)|(B>>4))&0xFF;
+         break;
+      case 0x31:
+         lastClock = 8;
+         C = ((C<<4)|(C>>4))&0xFF;
+         break;
+      case 0x32:
+         lastClock = 8;
+         D = ((D<<4)|(D>>4))&0xFF;
+         break;
+      case 0x33:
+         lastClock = 8;
+         E = ((E<<4)|(E>>4))&0xFF;
+         break;
+      case 0x34:
+         lastClock = 8;
+         H = ((H<<4)|(H>>4))&0xFF;
+         break;
+      case 0x35:
+         lastClock = 8;
+         L = ((L<<4)|(L>>4))&0xFF;
+         break;
+      case 0x36:
+         lastClock = 16;
+         wb(((H<<8)+L),((rb((H<<8)+L)<<4)|(rb((H<<8)+L)>>4))&0xFF);
+         break;
+   }
+}
+                      
+
 reset();
 
 while( false ) //Change this to true to run
