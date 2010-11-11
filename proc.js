@@ -556,6 +556,7 @@ opcodes[0xBD] = function CP_L() {
     if (A < L) {
         F |= flag_operation; 
     }
+<<<<<<< HEAD
     lastclock = 4;
 }
 
@@ -688,6 +689,140 @@ opcodes[0x0D] = function DEC_C {
     lastclock = 4;
 }
 
+=======
+    lastclock = 4;
+}
+
+opcodes[0xBE] = function CP_AT_HL() {
+    temp_result = rb((H<<8)+L);
+    if (temp_result == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < temp_result) {
+        F |= flag_operation; 
+    }
+    lastclock = 8;
+}
+
+opcodes[0xFE] = function CP_A_n() {
+    temp_result = rb(PC);
+    PC++;
+    if (temp_result == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < temp_result) {
+        F |= flag_operation; 
+    }
+    lastclock = 8;
+}
+
+opcodes[0x3C] = function INC_A {
+    A++;
+    if (A == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x04] = function INC_B {
+    B++;
+    if (B == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+opcodes[0x0C] = function INC_C {
+    C++;
+    if (C == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+opcodes[0x14] = function INC_D {
+    D++;
+    if (D == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x1C] = function INC_E {
+    E++;
+    if (E == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+opcodes[0x24] = function INC_H {
+    H++;
+    if (H == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x2C] = function INC_L {
+    L++;
+    if (L == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x2C] = function INC_AT_HL {
+    temp_result = rb((H<<8)+L);
+    temp_result++;
+    wb((H<<8)+L, temp_result);
+    // Write back result
+
+    if (temp_result == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 12;
+}
+
+opcodes[0x3D] = function DEC_A {
+    A--;
+    if (A == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x05] = function DEC_B {
+    B--;
+    if (B == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x0D] = function DEC_C {
+    C--;
+    if (C == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+>>>>>>> JSBrick/master
 opcodes[0x15] = function DEC_D {
     D--;
     if (D == 0) {
@@ -738,6 +873,7 @@ opcodes[0x2C] = function DEC_AT_HL {
     lastclock = 12;
 }
 
+<<<<<<< HEAD
     if (C == A) {
             F |= flag_zero;
     }
@@ -747,6 +883,8 @@ opcodes[0x2C] = function DEC_AT_HL {
     F != flag_operation; 
     lastclock = 4;
 }
+=======
+>>>>>>> JSBrick/master
 opcodes[0xA7] = function AND_A() { A = A & A; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
 opcodes[0xA0] = function AND_B() { A = A & B; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
 opcodes[0xA1] = function AND_C() { A = A & C; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
@@ -964,6 +1102,48 @@ opcodes[0xCB] = function CB()
 
 
 opcodes[0x00] = function NOP() { lastClock = 4; }
+
+opcodes[0xCB] = function CB()
+{
+   PC++;
+   var next = rb(PC);
+   switch(next)
+   {
+      case 0x37:
+         lastClock = 8;
+         A =  ((A<<4)|(A>>4))&0xFF;
+         break;
+      case 0x30:
+         lastClock = 8;
+         B = ((B<<4)|(B>>4))&0xFF;
+         break;
+      case 0x31:
+         lastClock = 8;
+         C = ((C<<4)|(C>>4))&0xFF;
+         break;
+      case 0x32:
+         lastClock = 8;
+         D = ((D<<4)|(D>>4))&0xFF;
+         break;
+      case 0x33:
+         lastClock = 8;
+         E = ((E<<4)|(E>>4))&0xFF;
+         break;
+      case 0x34:
+         lastClock = 8;
+         H = ((H<<4)|(H>>4))&0xFF;
+         break;
+      case 0x35:
+         lastClock = 8;
+         L = ((L<<4)|(L>>4))&0xFF;
+         break;
+      case 0x36:
+         lastClock = 16;
+         wb(((H<<8)+L),((rb((H<<8)+L)<<4)|(rb((H<<8)+L)>>4))&0xFF);
+         break;
+   }
+}
+                      
 
 reset();
 
