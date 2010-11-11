@@ -6,6 +6,8 @@ const flag_operation = 0x40; //set if last op was subtraction
 const flag_halfcarry = 0x20; //set if the lower half of the byte overflowed past 15 in last op
 const flag_carry = 0x10; //set if last operation was >255 or <0
 
+var interrupts_enabled = true;
+var halt = false;
 //Let's make some registers (8 bit)
 var A = 0, B = 0, C = 0, D = 0, E = 0, H = 0, L = 0, F = 0;
 //And the 16 bits
@@ -464,7 +466,6 @@ opcodes[0x9D] = function SBC_A_L() {
 	A = temp_result & 0xFF;
 	lastClock = 4;
 }
-
 opcodes[0x9E] = function SBC_A_AT_HL() {
 	temp_result = A - (rb((H<<8)+L) + (F&flag_carry)?1:0); //Subtraction
 	F = 0; //Clear flags
@@ -474,7 +475,6 @@ opcodes[0x9E] = function SBC_A_AT_HL() {
 	A = temp_result & 0xFF;
 	lastClock = 4;
 }
-
 opcodes[0xBF] = function CP_A() {
     // Kind of a do-nothing operation
     F |= flag_zero;
@@ -489,8 +489,10 @@ opcodes[0xB8] = function CP_B() {
     else {    
         F &= !flag_zero;
     }
-    F != flag_operation; 
-    lastclock = 4;
+    if (A < B) {
+        F |= flag_operation; 
+    }
+ lastclock = 4;
 }
 
 opcodes[0xB9] = function CP_C() {
@@ -500,10 +502,251 @@ opcodes[0xB9] = function CP_C() {
     else {    
         F &= !flag_zero;
     }
-    F != flag_operation; 
+    if (A < C) {
+        F |= flag_operation; 
+    }
+  lastclock = 4;
+}
+opcodes[0xBA] = function CP_D() {
+    if (D == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < D) {
+        F |= flag_operation; 
+    }
+   lastclock = 4;
+}
+
+opcodes[0xBB] = function CP_E() {
+    if (E == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < E) {
+        F |= flag_operation; 
+    }
     lastclock = 4;
 }
 
+opcodes[0xBC] = function CP_H() {
+    if (H == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < H) {
+        F |= flag_operation; 
+    }
+    lastclock = 4;
+}
+
+opcodes[0xBD] = function CP_L() {
+    if (L == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < L) {
+        F |= flag_operation; 
+    }
+    lastclock = 4;
+}
+
+opcodes[0xBE] = function CP_AT_HL() {
+    temp_result = rb((H<<8)+L);
+    if (temp_result == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < temp_result) {
+        F |= flag_operation; 
+    }
+    lastclock = 8;
+}
+
+opcodes[0xFE] = function CP_A_n() {
+    temp_result = rb(PC);
+    PC++;
+    if (temp_result == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    if (A < temp_result) {
+        F |= flag_operation; 
+    }
+    lastclock = 8;
+}
+
+opcodes[0x3C] = function INC_A {
+    A++;
+    if (A == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x04] = function INC_B {
+    B++;
+    if (B == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+opcodes[0x0C] = function INC_C {
+    C++;
+    if (C == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+opcodes[0x14] = function INC_D {
+    D++;
+    if (D == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x1C] = function INC_E {
+    E++;
+    if (E == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+opcodes[0x24] = function INC_H {
+    H++;
+    if (H == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x2C] = function INC_L {
+    L++;
+    if (L == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x2C] = function INC_AT_HL {
+    temp_result = rb((H<<8)+L);
+    temp_result++;
+    wb((H<<8)+L, temp_result);
+    // Write back result
+
+    if (temp_result == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 12;
+}
+
+opcodes[0x3D] = function DEC_A {
+    A--;
+    if (A == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x05] = function DEC_B {
+    B--;
+    if (B == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x0D] = function DEC_C {
+    C--;
+    if (C == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x15] = function DEC_D {
+    D--;
+    if (D == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x1D] = function DEC_E {
+    E--;
+    if (E == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+
+opcodes[0x25] = function DEC_H {
+    H--;
+    if (H == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x2D] = function DEC_L {
+    L--;
+    if (L == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 4;
+}
+
+opcodes[0x2C] = function DEC_AT_HL {
+    temp_result = rb((H<<8)+L);
+    temp_result--;
+    wb((H<<8)+L, temp_result);
+    // Write back result
+
+    if (temp_result == 0) {
+       F |= flag_zero; 
+    }
+    F &= !flag_operation;
+    lastclock = 12;
+}
+
+    if (C == A) {
+            F |= flag_zero;
+    }
+    else {    
+        F &= !flag_zero;
+    }
+    F != flag_operation; 
+    lastclock = 4;
+}
 opcodes[0xA7] = function AND_A() { A = A & A; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
 opcodes[0xA0] = function AND_B() { A = A & B; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
 opcodes[0xA1] = function AND_C() { A = A & C; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
@@ -513,7 +756,6 @@ opcodes[0xA4] = function AND_H() { A = A & H; F = 0; F |= flag_halfcarry; if (A 
 opcodes[0xA5] = function AND_L() { A = A & L; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
 opcodes[0xA6] = function AND_AT_HL() { A = A & rb((H<<8)+L); F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 8; }
 opcodes[0xE6] = function AND_n() { A = A & rb(PC); PC++; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 8; }
-
 opcodes[0xB7] = function OR_A() { A = A | A; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
 opcodes[0xB0] = function OR_B() { A = A | B; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
 opcodes[0xB1] = function OR_C() { A = A | C; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
@@ -522,9 +764,7 @@ opcodes[0xB3] = function OR_E() { A = A | E; F = 0; F |= flag_halfcarry; if (A =
 opcodes[0xB4] = function OR_H() { A = A | H; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
 opcodes[0xB5] = function OR_L() { A = A | L; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 4; }
 opcodes[0xB6] = function OR_AT_HL() { A = A | rb((H<<8)+L); F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 8; }
-opcodes[0xF6] = function OR_n() { A = A | rb(PC); PC++; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 8; }
-
-opcodes[0xAF] = function XOR_A() { A = A ^ A; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
+opcodes[0xF6] = function OR_n() { A = A | rb(PC); PC++; F = 0; F |= flag_halfcarry; if (A == 0) F |= flag_zero; lastClock = 8; }opcodes[0xAF] = function XOR_A() { A = A ^ A; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
 opcodes[0xA8] = function XOR_B() { A = A ^ B; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
 opcodes[0xA9] = function XOR_C() { A = A ^ C; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
 opcodes[0xAA] = function XOR_D() { A = A ^ D; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
@@ -532,12 +772,8 @@ opcodes[0xAB] = function XOR_E() { A = A ^ E; F=0; if(!(A & 0xFF)) F|=flag_zero;
 opcodes[0xAC] = function XOR_H() { A = A ^ H; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
 opcodes[0xAD] = function XOR_L() { A = A ^ L; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 4; }
 opcodes[0xAE] = function XOR_AT_HL() { A = A ^ rb((H<<8)+L); F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 8; }
-opcodes[0xEE] = function XOR_n() { A = A ^ rb(PC); PC++; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 8; }
-
-opcodes[0x0C] = function INC_C() /*0x0C*/ { C++; if(!(C & 0xFF)) F|=flag_zero; F&=!flag_carry; lastClock = 4; }
-
+opcodes[0xEE] = function XOR_n() { A = A ^ rb(PC); PC++; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 8; }opcodes[0x0C] = function INC_C() /*0x0C*/ { C++; if(!(C & 0xFF)) F|=flag_zero; F&=!flag_carry; lastClock = 4; }
 opcodes[0x05] = function DEC_B() /*0x05*/ { B--; if(!(B & 0xFF)) F|=flag_zero; F&=!flag_carry; lastClock = 4; }
-
 //JP cc,nn
 opcodes[0xC3] = function JP_nn() { PC = rw_lsb(PC); lastClock = 12; }
 opcodes[0xC2] = function JP_NZ_nn(){ if(!(F & flag_zero)) { PC = rw_lsb(PC); } lastClock = 12; }
@@ -598,6 +834,134 @@ opcodes[0x38] = function JR_C_n() {
 		lastClock = 12;
 	}
 }
+opcodes[0xCD] = function CALL_nn() { //This may or may not be correct...
+ 	SP--;
+	wb(SP, rb(PC+2));	
+	PC = rw(PC);
+	lastClock = 12;
+}
+opcodes[0xC4] = function CALL_NZ_nn() {
+	if(!(F | zero_flag))
+	{
+		SP--;
+		wb(SP, rb(PC+2));
+		PC = rw(PC);
+	}
+	else PC += 2;
+	lastClock = 12; //Does this still take 12 cycles if it didn't branch?
+}
+opcodes[0xCC] = function CALL_Z_nn() {
+	if((F | zero_flag))
+	{
+		SP--;
+		wb(SP, rb(PC+2));		
+		PC = rw(PC);
+	}
+	else PC += 2;
+	lastClock = 12;
+}
+opcodes[0xD4] = function CALL_NC_nn() {
+	if(!(F | carry_flag))
+	{
+		SP--;
+		wb(SP, rb(PC+2));
+		PC = rw(PC);
+	}
+	else PC += 2;
+	lastClock = 12;
+}
+opcodes[0xDC] = function CALL_C_nn() {
+	if((F | carry_flag))
+	{
+		SP--;
+		wb(SP, rb(PC+2));
+		PC = rw(PC);
+	}
+	else PC += 2;
+	lastClock = 12;
+}
+//Restarts
+opcodes[0xC7] = function RST_00H() {SP -= 2; ww(SP, PC); PC = 0x00; lastClock = 32; }
+opcodes[0xCF] = function RST_08H() {SP -= 2; ww(SP, PC); PC = 0x08; lastClock = 32; }
+opcodes[0xD7] = function RST_10H() {SP -= 2; ww(SP, PC); PC = 0x10; lastClock = 32; }
+opcodes[0xDF] = function RST_18H() {SP -= 2; ww(SP, PC); PC = 0x18; lastClock = 32; }
+opcodes[0xE7] = function RST_20H() {SP -= 2; ww(SP, PC); PC = 0x20; lastClock = 32; }
+opcodes[0xEF] = function RST_28H() {SP -= 2; ww(SP, PC); PC = 0x28; lastClock = 32; }
+opcodes[0xF7] = function RST_30H() {SP -= 2; ww(SP, PC); PC = 0x30; lastClock = 32; }
+opcodes[0xFF] = function RST_38H() {SP -= 2; ww(SP, PC); PC = 0x38; lastClock = 32; }
+
+//Returns
+opcodes[0xC9] = function RET() { PC = rw(SP); SP+=2; lastClock = 8; }
+
+opcodes[0xC0] = function RET_NZ() { if(!(F | flag_zero) { PC = rw(SP); SP+=2; lastClock = 8; } }
+opcodes[0xC8] = function RET_Z() { if((F | flag_zero) { PC = rw(SP); SP+=2; lastClock = 8; } }
+opcodes[0xD0] = function RET_NC() { if(!(F | flag_carry) { PC = rw(SP); SP+=2; lastClock = 8; } }
+opcodes[0xD8] = function RET_C() { if((F | flag_carry) { PC = rw(SP); SP+=2; lastClock = 8; } }
+
+opcodes[0xD9] = function RETI() { interrupts_enabled = true; PC = rw(SP); SP+=2; lastClock = 8; }
+
+opcodes[0x2F] = function CPL() { 
+   PC++;
+   A = ~A; 
+   lastClock = 4 
+}
+opcodes[0x3F] = function CCF() {
+   PC++;
+   if (F | flag_carry)
+      F &= !flag_carry;
+   else
+      F |= flag_carry;
+   lastClock = 4;
+}
+opcodes[0x37] = function SCF() { 
+   PC++;
+   F |= flag_carry;
+   lastClock = 4;
+}
+opcodes[0x76] = function HALT() { halt = true; }
+//opcodes[0x10] = function STOP() { } needs some rethinking
+opcodes[0xCB] = function CB()
+{
+   PC++;
+   var next = rb(PC);
+   switch(next)
+   {
+      case 0x37:
+         lastClock = 8;
+         A =  ((A<<4)|(A>>4))&0xFF;
+         break;
+      case 0x30:
+         lastClock = 8;
+         B = ((B<<4)|(B>>4))&0xFF;
+         break;
+      case 0x31:
+         lastClock = 8;
+         C = ((C<<4)|(C>>4))&0xFF;
+         break;
+      case 0x32:
+         lastClock = 8;
+         D = ((D<<4)|(D>>4))&0xFF;
+         break;
+      case 0x33:
+         lastClock = 8;
+         E = ((E<<4)|(E>>4))&0xFF;
+         break;
+      case 0x34:
+         lastClock = 8;
+         H = ((H<<4)|(H>>4))&0xFF;
+         break;
+      case 0x35:
+         lastClock = 8;
+         L = ((L<<4)|(L>>4))&0xFF;
+         break;
+      case 0x36:
+         lastClock = 16;
+         wb(((H<<8)+L),((rb((H<<8)+L)<<4)|(rb((H<<8)+L)>>4))&0xFF);
+         break;
+   }
+}
+
+
 
 opcodes[0x00] = function NOP() { lastClock = 4; }
 
