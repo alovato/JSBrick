@@ -3,6 +3,7 @@
 var imageData;
 var execs = 0;
 
+
 // The run function should handle primary initialization tasks. This will
 // include running the dispatcher and running the draw() function at an
 // appropriate interval.
@@ -26,6 +27,12 @@ function stepCPU() {
     // Step the CPU
 	var op = execute_step();
 	execs += 1;
+}
+
+// Step the CPU and update the register table with the current register values
+function stepCPU() {
+    // Step the CPU
+
     // Update table
     var rows = document.getElementById("regTable").rows;
     rows[1].cells[1].innerHTML = "0x" + A.toString(16);
@@ -88,7 +95,6 @@ function clearCanvas() {
     height = parseInt(canvas.getAttribute("height"));
 
 
-    // draw random dots
     for (i = 0; i < width; i++) 
 	{
 		for(j = 0; j < height; j++)
@@ -118,6 +124,7 @@ function init() {
 	//is done running it will overwrite that addressable space with tetris again.
 	load_image("bios.gb"); 
 	stepCPU();
+
 }
 
 // Set a pixel at (x, y) with the values of (r, g, b, a)
@@ -139,3 +146,4 @@ function draw() {
     // Update the canvas with the imageData
     ctx.putImageData(imageData, 0, 0);
 }  
+
