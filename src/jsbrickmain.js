@@ -18,14 +18,16 @@ function stepCPU() {
 
     // Update table
     var rows = document.getElementById("regTable").rows;
-    rows[1].cells[1].innerHTML = A;
-    rows[2].cells[1].innerHTML = B;
-    rows[3].cells[1].innerHTML = C;
-    rows[4].cells[1].innerHTML = D;
-    rows[5].cells[1].innerHTML = E;
-    rows[6].cells[1].innerHTML = H;
-    rows[7].cells[1].innerHTML = L;
-    rows[8].cells[1].innerHTML = F;
+    rows[1].cells[1].innerHTML = "0x" + A.toString(16);
+    rows[2].cells[1].innerHTML = "0x" + B.toString(16);
+    rows[3].cells[1].innerHTML = "0x" + C.toString(16);
+    rows[4].cells[1].innerHTML = "0x" + D.toString(16);
+    rows[5].cells[1].innerHTML = "0x" + E.toString(16);
+    rows[6].cells[1].innerHTML = "0x" + H.toString(16);
+    rows[7].cells[1].innerHTML = "0x" + L.toString(16);
+    rows[8].cells[1].innerHTML = "0x" + F.toString(16);
+    rows[9].cells[1].innerHTML = "0x" + PC.toString(16);
+    rows[10].cells[1].innerHTML = "0x" + SP.toString(16);
 }
 
 // Dumb function to draw random dots in the canvas so we can see where it is
