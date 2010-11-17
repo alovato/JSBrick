@@ -5,18 +5,49 @@
 
 <head> 
     <title> JSBrick Main Page </title>
+    <script type="text/javascript" src="proc.js"></script>
     <script type="text/javascript" src="jsbrickmain.js"></script>
 </head>
 
 <body onload="run()">
 
-<h1>JSBrick Main Page</h1>
+<center><h1>JSBrick Main Page</h1></center>
 <p>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="5">
+<tr>
+<td width="75%">
 <canvas id="canvas" width="600" height="400">
 
 <p>The canvas element is not supported by your browser!</p>
 
 </canvas> 
+</td>
+
+<td width="25%">
+<p>
+<h1> Debugger </h1>
+<p>
+<h2> Registers </h2>
+<p>
+<table id="regTable" border="1" width="25%">
+<tr>
+<th> Register </th>
+<th></th>
+</tr>
+<tr><td>A </td> <td> </td></tr>
+<tr><td>B </td> <td> </td></tr>
+<tr><td>C </td> <td> </td></tr>
+<tr><td>D </td> <td> </td></tr>
+<tr><td>E </td> <td> </td></tr>
+<tr><td>H </td> <td> </td></tr>
+<tr><td>L </td> <td> </td></tr>
+<tr><td>F </td> <td> </td></tr>
+</table>
+<p>
+<button type="button" onclick="stepCPU()">Execute Instruction</button>
+</td>
+</table>
 
 </body>
 </html>
