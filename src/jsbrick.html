@@ -4,19 +4,62 @@
 <html>
 
 <head> 
-    <title> JSBrick Main Page </title>
+    <title> JSBrick </title>
+    <script type="text/javascript" src="BinFileReader.js"></script>
+	<script type="text/javascript" src="proc.js"></script>
     <script type="text/javascript" src="jsbrickmain.js"></script>
 </head>
 
 <body onload="run()">
 
-<h1>JSBrick Main Page</h1>
+<center><h1>JSBrick</h1></center>
 <p>
-<canvas id="canvas" width="600" height="400">
+
+<table width="100%" border="0" cellspacing="0" cellpadding="5">
+<tr>
+<td width="66%">
+<center>
+<canvas id="canvas" width="160" height="144">
 
 <p>The canvas element is not supported by your browser!</p>
 
 </canvas> 
+</center>
+</td>
 
+<td width="33%">
+<h2> Registers </h2>
+<p>
+<table id="regTable" border="1" width="33%">
+<tr>
+<th> Register </th>
+<th>Value</th>
+</tr>
+<tr><td>A </td> <td> </td></tr>
+<tr><td>B </td> <td> </td></tr>
+<tr><td>C </td> <td> </td></tr>
+<tr><td>D </td> <td> </td></tr>
+<tr><td>E </td> <td> </td></tr>
+<tr><td>H </td> <td> </td></tr>
+<tr><td>L </td> <td> </td></tr>
+<tr><td>F </td> <td> </td></tr>
+<tr><td>SP </td> <td> </td></tr>
+<tr><td>Next PC </td> <td> </td></tr>
+<tr><td>Last OP</td> <td> </td></tr>
+<tr><td>Execs</td> <td> </td></tr>
+</table>
+<p>
+<button type="button" onclick="stepCPU()">Execute Instruction</button>
+<button type="button" onclick="run_for()">Run for...</button>
+</td>
+</table>
+<hr>
+
+<table id="debugOut" width="100%" border="1" cellpadding = "3">
+<font size="2">
+<tr><th>Debug Output</th><th>Call Trace</th></tr>
+<tr><td width = "50%"></td><td width = "25%"></td><td width = "25%"></td></tr>
+</font>
+</table>
 </body>
 </html>
