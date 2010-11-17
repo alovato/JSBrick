@@ -2036,7 +2036,7 @@ opcodes[0xCB] = function CB() { //Yay for subcommands!
 			C &= 0xFF;
 			
 			if(C == 0) F |= flag_zero;
-			else F &= ~flagzero;
+			else F &= ~flag_zero;
 		break;
 			
    
@@ -2098,7 +2098,7 @@ opcodes[0x17] = function RLA()
 		A += temp_value;
 		A &= 0xFF;
 		if(C == 0) F |= flag_zero;
-		else F &= ~flagzero;
+		else F &= ~flag_zero;
 }
 instructionNames[0x00] = "NOP";
 opcodes[0x00] = function NOP() { lastClock = 4; }                 
