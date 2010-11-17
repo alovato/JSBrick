@@ -49,13 +49,13 @@ function reset()
 
 //This is the assumed syntax for MMU
 
-function wb(addr, val) { mem[addr] = val&0xFF; } //Write byte
-function ww(addr, val) { mem[addr] = (val>>8)&0xFF; mem[addr+1] = val&0xFF; } //Write word
-function rb(addr) { return mem[addr]; } //Read byte
-function rw(addr) { return mem[addr]<<8 + mem[addr+1]; } //Read word
-function rw_lsb(addr) { return mem[addr+1]<<8 + mem[addr]; } //Read word with least sig byte first
+function wb(addr, val) { mem[addr] = Number(val)&0xFF; } //Write byte
+function ww(addr, val) { mem[addr] = Number(val>>8)&0xFF; mem[addr+1] = Number(val)&0xFF; } //Write word
+function rb(addr) { return Number(mem[addr].charCodeAt(0)); } //Read byte
+function rw(addr) { return Number( (mem[addr]<<8) + mem[addr+1]); } //Read word
+function rw_lsb(addr) { return rb(addr) + (rb(addr+1)<<8); } //Read word with least sig byte first
 
-//Time to start our instructions!
+  //Time to start our instructions!
 
 //LD register, n
 opcodes[0x06] = function LDB_n() /*0x06*/ { B = rb(PC); PC++; lastClock = 8; }
@@ -145,11 +145,11 @@ opcodes[0xE2] = function LD_AT_C_A() /*0xE2*/ { wb(0xFF00+C, A); lastClock = 8; 
 //LD A, (HLD)
 opcodes[0x3A] = function LDA_AT_HLD() /*0x3A*/ { A = rb((H<<8)+L); temp_result = ((H<<8)+L - 1); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
 //LD (HLD), A
-opcodes[0x32] = function LD_AT_HLD_A() /*0x32*/ { wb((H<<8)+L, A); temp_result = ((H<<8)+L - 1, A); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
+opcodes[0x32] = function LD_AT_HLD_A() /*0x32*/ { wb((H<<8)+L, A); temp_result = ((H<<8)+L - 1); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
 //LD A, (HLI)
 opcodes[0x2A] = function LDA_AT_HLI() /*0x2A*/ { A = rb((H<<8)+L); temp_result = ((H<<8)+L + 1); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
 //LD (HLI), A
-opcodes[0x22] = function LD_AT_HLI_A() /*0x22*/ { wb((H<<8)+L, A); temp_result = ((H<<8)+L + 1, A); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
+opcodes[0x22] = function LD_AT_HLI_A() /*0x22*/ { wb((H<<8)+L, A); temp_result = ((H<<8)+L + 1); H = (temp_result>>8)&0xFF; L = temp_result&0xFF;}
 //LD (n), A
 opcodes[0xE0] = function LD_n_A() /*0xE0*/ { wb(0xFF00+rb(PC), A); PC++; lastClock = 12; }
 //LD A, (n)
@@ -657,6 +657,7 @@ opcodes[0x34] = function INC_AT_HL() {
 }
 opcodes[0x3D] = function DEC_A() {
     A--;
+	A &= 0xFF;
     if (A == 0) {
        F |= flag_zero; 
     }
@@ -665,6 +666,7 @@ opcodes[0x3D] = function DEC_A() {
 }
 opcodes[0x05] = function DEC_B() {
     B--;
+	B &= 0xFF;
     if (B == 0) {
        F |= flag_zero; 
     }
@@ -673,6 +675,7 @@ opcodes[0x05] = function DEC_B() {
 }
 opcodes[0x0D] = function DEC_C() {
     C--;
+	C &= 0xFF;
     if (C == 0) {
        F |= flag_zero; 
     }
@@ -681,6 +684,7 @@ opcodes[0x0D] = function DEC_C() {
 }
 opcodes[0x15] = function DEC_D() {
     D--;
+	D &= 0xFF;
     if (D == 0) {
        F |= flag_zero; 
     }
@@ -689,6 +693,7 @@ opcodes[0x15] = function DEC_D() {
 }
 opcodes[0x1D] = function DEC_E() {
     E--;
+	E &= 0xFF;
     if (E == 0) {
        F |= flag_zero; 
     }
@@ -697,6 +702,7 @@ opcodes[0x1D] = function DEC_E() {
 }
 opcodes[0x25] = function DEC_H() {
     H--;
+	H &= 0xFF;
     if (H == 0) {
        F |= flag_zero; 
     }
@@ -705,6 +711,7 @@ opcodes[0x25] = function DEC_H() {
 }
 opcodes[0x2D] = function DEC_L() {
     L--;
+	L &= 0xFF;
     if (L == 0) {
        F |= flag_zero; 
     }
@@ -714,6 +721,7 @@ opcodes[0x2D] = function DEC_L() {
 opcodes[0x35] = function DEC_AT_HL() {
     temp_result = rb((H<<8)+L);
     temp_result--;
+	temp_result &= 0xFF;
     wb((H<<8)+L, temp_result);
     // Write back result
 
@@ -751,7 +759,7 @@ opcodes[0xAD] = function XOR_L() { A = A ^ L; F=0; if(!(A & 0xFF)) F|=flag_zero;
 opcodes[0xAE] = function XOR_AT_HL() { A = A ^ rb((H<<8)+L); F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 8; }
 opcodes[0xEE] = function XOR_n() { A = A ^ rb(PC); PC++; F=0; if(!(A & 0xFF)) F|=flag_zero; lastClock = 8; }
 //JP cc,nn
-opcodes[0xC3] = function JP_nn() { PC = rw_lsb(PC); lastClock = 12; }
+opcodes[0xC3] = function JP_nn() { PC = rw_lsb(PC); lastClock = 12;}
 opcodes[0xC2] = function JP_NZ_nn(){ if(!(F & flag_zero)) { PC = rw_lsb(PC); } lastClock = 12; }
 opcodes[0xCA] = function JP_Z_nn(){ if(F & flag_zero) { PC = rw_lsb(PC); } lastClock = 12; }
 opcodes[0xD2] = function JP_NC_nn(){ if(!(F & flag_carry)) { PC = rw_lsb(PC); } lastClock = 12; }
@@ -892,6 +900,94 @@ opcodes[0x37] = function SCF() {
 }
 opcodes[0x76] = function HALT() { halt = true; }
 //opcodes[0x10] = function STOP() { } needs some rethinking
+opcodes[0x09] = function ADD16_HL_BC() /*0x09*/ {
+   temp_result = ((H<<8)+L)+((B<<8)+C);
+   F = 0;
+   if (temp_result > 0xFFFF) F |= flag_carry;
+   H = ((temp_result>>8)&0xFF);
+   L = (temp_result&0xFF);
+   lastClock = 8;
+}
+opcodes[0x19] = function ADD16_HL_DE() /*0x19*/ {
+   temp_result = ((H<<8)+L)+((D<<8)+E);
+   F = 0;
+   if (temp_result > 0xFFFF) F |= flag_carry;
+   H = ((temp_result>>8)&0xFF);
+   L = (temp_result&0xFF);
+   lastClock = 8;
+}
+opcodes[0x29] = function ADD16_HL_HL() /*0x29*/ {
+   temp_result = ((H<<8)+L)+((H<<8)+L);
+   F = 0;
+   if (temp_result > 0xFFFF) F |= flag_carry;
+   H = ((temp_result>>8)&0xFF);
+   L = (temp_result&0xFF);
+   lastClock = 8;
+}
+opcodes[0x39] = function ADD16_HL_SP() /*0x39*/ {
+   temp_result = ((H<<8)+L)+SP;
+   F = 0;
+   if (temp_result > 0xFFFF) F |= flag_carry;
+   H = (temp_result>>8&0xFF);
+   L = (temp_result&0xFF);
+   lastClock = 8;
+}
+opcodes[0xE8] = function ADD16_SP_n() /*0xE8*/ {
+   SP += rb(PC);
+   PC++;
+   if (SP > 0xFFFF) F |= flag_carry;
+   lastClock = 16;
+}
+opcodes[0x03] = function INC16_BC() /*0x03*/ {
+   temp_result = ((B<<8)+C);
+   temp_result++;
+   B = (temp_result>>8)&0xFF;
+   C = temp_result&0xFF;
+   lastClock = 8;
+}
+opcodes[0x13] = function INC16_DE() /*0x13*/ {
+    temp_result = ((D<<8)+E);
+   temp_result++;
+   D = (temp_result>>8)&0xFF;
+   E = temp_result&0xFF;
+   lastClock = 8;
+}  
+opcodes[0x23] = function INC16_HL() /*0x23*/ {
+   temp_result = ((H<<8)+L);
+   temp_result++;
+   H = (temp_result>>8)&0xFF;
+   L = temp_result&0xFF;
+   lastClock = 8;
+}
+opcodes[0x33] = function INC16_SP() /*0x33*/ {
+   SP++;
+   lastClock = 8;
+}
+opcodes[0x0B] = function DEC16_BC() /*0x0B*/ {
+   temp_result = ((B<<8)+C);
+   temp_result--;
+   B = (temp_result>>8)&0xFF;
+   C = temp_result&0xFF;
+   lastClock = 8;
+}
+opcodes[0x1B] = function DEC16_DE() /*0x1B*/ {
+    temp_result = ((D<<8)+E);
+   temp_result--;
+   D = (temp_result>>8)&0xFF;
+   E = temp_result&0xFF;
+   lastClock = 8;
+}  
+opcodes[0x2B] = function DEC16_HL() /*0x2B*/ {
+   temp_result = ((H<<8)+L);
+   temp_result--;
+   H = (temp_result>>8)&0xFF;
+   L = temp_result&0xFF;
+   lastClock = 8;
+}
+opcodes[0x3B] = function DEC16_SP() /*0x3B*/ {
+   SP--;
+   lastClock = 8;
+}
 opcodes[0xCB] = function CB() { //Yay for subcommands!
    PC++;
    var next = rb(PC);
@@ -937,9 +1033,10 @@ reset();
 
 function execute_step()
 {
-	PC++;
-	document.write("Opcode is " + PC + ", " + rb(PC));
-	opcodes[rb(PC)]();
+	
+	document.write("PC is " + PC.toString(16) + ", opcode is " + rb(PC).toString(16) + " ------ ");
+	opcodes[rb(PC++)]();
+	//PC++;
 	totalClock += lastClock;
 	return "[" + PC.toString(16) + "] - <b>A</b> :" + A.toString(16)
 				+ " <b>B</b> :" + B.toString(16) 
@@ -962,7 +1059,6 @@ function execute_step()
 document.write("<br>Let's go!</br>");
 for(i = 0; i < 255; i+=1)
 {
-	document.write("Executing step " + i + " : ");
 	document.write(execute_step());
 }
 
