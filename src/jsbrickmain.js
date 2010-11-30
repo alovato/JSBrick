@@ -151,13 +151,36 @@ function draw() {
 // Handle keyboard input.
 function handleInput(e) {
     // Get the key that was pressed.
-    var key = String.fromCharCode(e.charCode);
+    var key = e.keyCode;
+    var value = 0;
 
     // Decide here how to actually handle the individual keys.
-    if (key=="a")
-        alert("blah");
-    if (key=="s")
-        alert("foo");
+    if (key == 65) {
+        // Start
+    }
+    else if (key == 90) {
+        // A
+        
+    }
+    else if (key == 88) {
+        // B
+    }
+    else if (key == 83) {
+        // Select
+    }
+    else if (key == 37) {
+        // Left
+    }
+    else if (key == 38) {
+        // Up
+    }
+    else if (key == 39) {
+        // Right
+    }
+    else if (key == 40) {
+        // Down
+    }
+
 }
 
 
