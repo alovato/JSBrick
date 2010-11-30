@@ -1,15 +1,12 @@
 // This file is to contain the main JSBrick Javascript code. 
-
+var canvas;
 var imageData;
 var execs = 0;
-
 
 // The run function should handle primary initialization tasks. This will
 // include running the dispatcher and running the draw() function at an
 // appropriate interval.
 function run() {
-    //init();
-    //draw(); 
     // Test
     clearCanvas();
 }
@@ -17,23 +14,37 @@ function run_for() {
 	var num = parseInt(prompt("Run how many instructions?", "1"));
 	for(i = 0; i < num-1; i += 1)
 	{
-		execute_step();
+		execute_gpu_step(execute_step());
 		execs++;
 	}
 	stepCPU();
 }
 
 // Step the CPU and update the register table with the current register values
-function stepCPU() {
+function stepCPU()
+{
     // Step the CPU
-	var op = execute_step();
+	execute_gpu_step(execute_step());
+	if(gpu_ready_to_draw)
+	{
+		
+		for(var j = 0; j < 144; j++)
+		{
+			for(var i = 0; i < 160; i++)
+			{
+				setPixel(imageData, 
+					i, j,
+					output_vram[(i+j*160)*4],
+					output_vram[(i+j*160)*4+1],
+					output_vram[(i+j*160)*4+2],
+					0xFF);
+			}
+		}
+		draw();
+		gpu_ready_to_draw = false;
+		debug_out("Draw frame");
+	}
 	execs += 1;
-}
-
-// Step the CPU and update the register table with the current register values
-function stepCPU() {
-    // Step the CPU
-
     // Update table
     var rows = document.getElementById("regTable").rows;
     rows[1].cells[1].innerHTML = "0x" + A.toString(16);
@@ -48,20 +59,24 @@ function stepCPU() {
 	rows[10].cells[1].innerHTML = "0x" + PC.toString(16);
 	rows[11].cells[1].innerHTML = "0x" + op.toString(16);
 	rows[12].cells[1].innerHTML = execs;
+	rows[13].cells[1].innerHTML = totalClock;
+	rows[14].cells[1].innerHTML = gpu_mode;
+	rows[15].cells[1].innerHTML = gpu_timer;
+	rows[16].cells[1].innerHTML = gpu_scanline;
     
 	
 	rows = document.getElementById("debugOut").rows;
 	rows[1].cells[0].innerHTML = "";
 	if(debug_output.length < 50)
 	{
-		for(i = 0; i < debug_output.length; i++)
+		for(i = debug_output.length-1; i >= 0; i--)
 		{
 			rows[1].cells[0].innerHTML += debug_output[i] + "<br>";
 		}
 	}
 	else
 	{
-		for(i = debug_output.length-50; i < debug_output.length; i++)
+		for(i = debug_output.length-1; i >= debug_output.length-50; i--)
 		{
 			rows[1].cells[0].innerHTML += debug_output[i] + "<br>";
 		}
@@ -91,7 +106,7 @@ function clearCanvas() {
     var canvas = document.getElementById("canvas");
 
     init();
-
+	
     width = parseInt(canvas.getAttribute("width"));
     height = parseInt(canvas.getAttribute("height"));
 
@@ -100,7 +115,7 @@ function clearCanvas() {
 	{
 		for(j = 0; j < height; j++)
 		{
-			setPixel(imageData, i, j, 0, 0, 0, 0xff); // 0xff opaque
+			setPixel(imageData, i, j, c_white, c_white, c_white, 0xFF); // 0xff opaque
 		}
 	}
 
@@ -110,7 +125,7 @@ function clearCanvas() {
 
 // This function initializes the imageData array
 function init() {
-    var canvas = document.getElementById("canvas");
+    canvas = document.getElementById("canvas");
     var ctx = canvas.getContext("2d");
 
     width = parseInt(canvas.getAttribute("width"));
@@ -119,6 +134,8 @@ function init() {
     imageData = ctx.createImageData(width, height);
 	
 	reset(); //Reset our CPU, load our memory map, and go!
+	init_gpu();
+	
 	load_image("tetris.gb");
 	//This overwrites the first 255 bytes of the previosly loaded rom.
 	//Both need to be in memory to bypass a piracy check. Once the bios
