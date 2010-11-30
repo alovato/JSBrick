@@ -5,6 +5,7 @@ const flag_zero = 0x80; //set when last op had result of 0
 const flag_operation = 0x40; //set if last op was subtraction
 const flag_halfcarry = 0x20; //set if the lower half of the byte overflowed past 15 in last op
 const flag_carry = 0x10; //set if last operation was >255 or <0
+var op = 0; //Used to write opcode to screen
 var debug_output = [];
 var call_trace = [];
 var pc_trace = [];
@@ -24,6 +25,11 @@ function set_flag_zero(tf)
 {
 	if(tf) F |= flag_zero;
 	else F &= ~flag_zero;
+}
+function set_flag_carry(tf)
+{
+	if(tf) F |= flag_carry;
+	else F &= ~flag_carry;
 }
 
 function print_stack()
@@ -79,24 +85,27 @@ function reset()
 	{
 		mem[i] = 0x00;
 	}
-	debug_out("Z80 Initialized!");
+	debug_out("Z80 Initialized");
 }
 
-//This is the assumed syntax for MMU
+//TODO: Move the MMU and maybe opcodes to another file
 
 function wb(addr, val) //Write byte
 {
+	if(addr >= 0xE000 && addr <= 0xFE00) addr -= 0x2000; //Mirrored memory
 	mem[addr] = val;
+}
+function rb(addr) //Read byte
+{
+	if(addr >= 0xE000 && addr <= 0xFE00) addr -= 0x2000; //Mirrored memory
+	return mem[addr];
 } 
+
 function ww(addr, val) //Write word
 {
 	wb(addr, val&0x00FF);
 	wb(addr+1, (val&0xFF00)/0x0100);
 }
-function rb(addr)
-{
-	return mem[addr];
-} //Read byte
 function rw(addr)
 {
 	return rb(addr) + (rb(addr+1)*0x0100);
@@ -109,12 +118,14 @@ var none = function NOT_IMPLEMENTED()
 {
 	debug_out("Invalid instruction when PC is " + (PC-1).toString(16) + ", possibly opcode " + rb(PC-1).toString(16));
 }
+
+
+
 for(i = 0; i < 256; i+=1)
 {
 	opcodes[i] = none;
-	instructionNames[i] = "N/A";
+	instructionNames[i] = "N/A - ERROR: OPCODE 0x" + i.toString(16);
 }
-
 
 //LD register, n
 instructionNames[0x06] = "LDB n";
@@ -775,10 +786,9 @@ opcodes[0x87] = function ADD_A_A() /*0x87*/
 {
 	temp_result = A + A; //Addition
 	F = 0; //Clear flags
-	set_flag_zero(!(A & 0xFF));
-	
-	if(temp_result > 0xFF) F |= flag_carry;
 	A = temp_result & 0xFF;
+	set_flag_zero(A==0);
+	if(temp_result > 0xFF) F |= flag_carry;
 	lastClock = 4;
 }
 instructionNames[0x80] = "ADD A B";
@@ -786,9 +796,9 @@ opcodes[0x80] = function ADD_A_B() /*0x80*/
 {
 	temp_result = A + B; //Addition
 	F = 0; //Clear flags
-	set_flag_zero(!(A & 0xFF));
-	if(temp_result > 0xFF) F |= flag_carry;
 	A = temp_result & 0xFF;
+	set_flag_zero(A==0);
+	if(temp_result > 0xFF) F |= flag_carry;
 	lastClock = 4;
 }
 instructionNames[0x81] = "ADD A C";
@@ -796,9 +806,9 @@ opcodes[0x81] = function ADD_A_C() /*0x81*/
 {
 	temp_result = A + C; //Addition
 	F = 0; //Clear flags
-	set_flag_zero(!(A & 0xFF));
-	if(temp_result > 0xFF) F |= flag_carry;
 	A = temp_result & 0xFF;
+	set_flag_zero(A==0);
+	if(temp_result > 0xFF) F |= flag_carry;
 	lastClock = 4;
 }
 instructionNames[0x82] = "ADD A D";
@@ -806,9 +816,9 @@ opcodes[0x82] = function ADD_A_D() /*0x82*/
 {
 	temp_result = A + D; //Addition
 	F = 0; //Clear flags
-	set_flag_zero(!(A & 0xFF));
-	if(temp_result > 0xFF) F |= flag_carry;
 	A = temp_result & 0xFF;
+	set_flag_zero(A==0);
+	if(temp_result > 0xFF) F |= flag_carry;
 	lastClock = 4;
 }
 instructionNames[0x83] = "ADD A E";
@@ -816,9 +826,9 @@ opcodes[0x83] = function ADD_A_E() /*0x83*/
 {
 	temp_result = A + E; //Addition
 	F = 0; //Clear flags
-	set_flag_zero(!(A & 0xFF));
-	if(temp_result > 0xFF) F |= flag_carry;
 	A = temp_result & 0xFF;
+	set_flag_zero(A==0);
+	if(temp_result > 0xFF) F |= flag_carry;
 	lastClock = 4;
 }
 instructionNames[0x84] = "ADD A H";
@@ -826,9 +836,9 @@ opcodes[0x84] = function ADD_A_H() /*0x84*/
 {
 	temp_result = A + H; //Addition
 	F = 0; //Clear flags
-	set_flag_zero(!(A & 0xFF));
-	if(temp_result > 0xFF) F |= flag_carry;
 	A = temp_result & 0xFF;
+	set_flag_zero(A==0);
+	if(temp_result > 0xFF) F |= flag_carry;
 	lastClock = 4;
 }
 instructionNames[0x85] = "ADD A L";
@@ -836,9 +846,10 @@ opcodes[0x85] = function ADD_A_L() /*0x85*/
 {
 	temp_result = A + E; //Addition
 	F = 0; //Clear flags
-	set_flag_zero(!(A & 0xFF));
-	if(temp_result > 0xFF) F |= flag_carry;
 	A = temp_result & 0xFF;
+	set_flag_zero(A==0);
+	if(temp_result > 0xFF) F |= flag_carry;
+	
 	lastClock = 4;
 }
 instructionNames[0x86] = "ADD A (HL)";
@@ -846,9 +857,9 @@ opcodes[0x86] = function ADD_A_AT_HL() /*0x86*/
 {
 	temp_result = A + rb((H<<8)+L); //Addition
 	F = 0; //Clear flags
-	set_flag_zero(!(A & 0xFF));
-	if(temp_result > 0xFF) F |= flag_carry;
 	A = temp_result & 0xFF;
+	set_flag_zero(A == 0);
+	if(temp_result > 0xFF) F |= flag_carry;
 	lastClock = 8;
 }
 instructionNames[0xC6] = "ADD A n";
@@ -1145,14 +1156,15 @@ instructionNames[0xBF] = "CP A";
 opcodes[0xBF] = function CP_A() 
 {
     // Kind of a do-nothing operation
-    F |= flag_zero;
-    F |= flag_operation; 
+    set_flag_zero(true);
+    set_flag_carry(false); 
     lastclock = 4;
 }
 instructionNames[0xB8] = "CP B";
 opcodes[0xB8] = function CP_B() 
 {
     set_flag_zero(B == A);
+	set_flag_carry(A < B);
     if (A < B) {
         F |= flag_operation; 
     }
@@ -1162,6 +1174,7 @@ instructionNames[0xB9] = "CP C";
 opcodes[0xB9] = function CP_C() 
 {
     set_flag_zero(C == A);
+	set_flag_carry(A < C);
     if (A < C) {
         F |= flag_operation; 
     }
@@ -1171,6 +1184,7 @@ instructionNames[0xBA] = "CP D";
 opcodes[0xBA] = function CP_D() 
 {
     set_flag_zero(D == A);
+	set_flag_carry(A < D);
     if (A < D) {
         F |= flag_operation; 
     }
@@ -1180,6 +1194,7 @@ instructionNames[0xBB] = "CP E";
 opcodes[0xBB] = function CP_E() 
 {
     set_flag_zero(E == A);
+	set_flag_carry(A < E);
     if (A < E) {
         F |= flag_operation; 
     }
@@ -1188,19 +1203,15 @@ opcodes[0xBB] = function CP_E()
 instructionNames[0xBC] = "CP H";
 opcodes[0xBC] = function CP_H() 
 {
-    set_flag_zero(H == A);
-    if (A < H) {
-        F |= flag_operation; 
-    }
+	set_flag_zero(H == A);
+    set_flag_carry(A < H);
     lastclock = 4;
 }
 instructionNames[0xBD] = "CP L";
 opcodes[0xBD] = function CP_L() 
 {
-    set_flag_zero(L == A);
-    if (A < L) {
-        F |= flag_operation; 
-    }
+	set_flag_zero(L == A);
+    set_flag_carry(A < L);
     lastclock = 4;
 }
 instructionNames[0xBE] = "CP (HL)";
@@ -1208,9 +1219,7 @@ opcodes[0xBE] = function CP_AT_HL()
 {
     temp_result = rb((H<<8)+L);
     set_flag_zero(temp_result == A);
-    if (A < temp_result) {
-        F |= flag_operation; 
-    }
+	set_flag_carry(A < temp_result);
     lastclock = 8;
 }
 instructionNames[0xFE] = "CP A n";
@@ -1708,7 +1717,7 @@ opcodes[0x38] = function JR_C_n()
 		lastClock = 12;
 	}
 }
-instructionNames[0xCD] == "CALL nn";
+instructionNames[0xCD] = "CALL nn";
 opcodes[0xCD] = function CALL_nn() 
 {
 	SP--;
@@ -2105,8 +2114,8 @@ opcodes[0x00] = function NOP() { lastClock = 4; }
 
 function execute_step()
 {
-	var o = rb(PC);
-	call_out(instructionNames[rb(PC)]);
+	op = rb(PC);
+	call_out(instructionNames[op] + " : " + "0x" + op.toString(16));
 	opcodes[rb(PC++)]();
 	SP &= 0xFFFF;
 	PC &= 0xFFFF;
@@ -2122,7 +2131,8 @@ function execute_step()
 	if(PC == 0x0100 && running_bios)
 	{
 		running_bios = false;
+		debug_out("BIOS Execution completed");
 		load_image("tetris.gb");
 	}
-	return o;
+	return lastClock;
 }
