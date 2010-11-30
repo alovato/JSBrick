@@ -19,6 +19,7 @@ function run_for() {
 	}
 	stepCPU();
 }
+
 // Step the CPU and update the register table with the current register values
 function stepCPU()
 {
@@ -163,4 +164,17 @@ function draw() {
     // Update the canvas with the imageData
     ctx.putImageData(imageData, 0, 0);
 }  
+
+// Handle keyboard input.
+function handleInput(e) {
+    // Get the key that was pressed.
+    var key = String.fromCharCode(e.charCode);
+
+    // Decide here how to actually handle the individual keys.
+    if (key=="a")
+        alert("blah");
+    if (key=="s")
+        alert("foo");
+}
+
 
