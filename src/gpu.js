@@ -36,9 +36,6 @@ function execute_gpu_step(ticks)
 			{
 				gpu_mode = gpu_mode_vblank;
 				
-				var raised_interrupts = rb(0xFF0F);
-				raised_interrupts |= interrupt_vblank;
-				wb(0xFF0F, raised_interrupts);
 				gpu_ready_to_draw = true;
 				if( !(rb(0xFF40) & 0x80) ) gpu_blankscreen = true; //MAKE THIS AFFECT DRAWING
 				else gpu_blankscreen = false;
@@ -61,6 +58,10 @@ function execute_gpu_step(ticks)
 				vram = output_vram.data;
 				gpu_mode = gpu_mode_scan_OAM;
 				gpu_scanline = 0;
+				
+				var raised_interrupts = rb(0xFF0F);
+				raised_interrupts |= interrupt_vblank;
+				wb(0xFF0F, raised_interrupts);
 			}
 		}
 	}
@@ -173,10 +174,20 @@ function do_scanline()
 		
 		if(!error)
 		{
-			vram[output_addr++] = outcol;
-			vram[output_addr++] = outcol;
-			vram[output_addr++] = outcol;
-			vram[output_addr++] = 0xFF; //We don't want to change the alpha channel
+			if(!gpu_blankscreen)
+			{
+				vram[output_addr++] = outcol;
+				vram[output_addr++] = outcol;
+				vram[output_addr++] = outcol;
+				vram[output_addr++] = 0xFF; //We don't want to change the alpha channel
+			}
+			else
+			{
+				vram[output_addr++] = 0xFF;
+				vram[output_addr++] = 0xFF;
+				vram[output_addr++] = 0xFF;
+				vram[output_addr++] = 0xFF;
+			}
 		}
 		else
 		{

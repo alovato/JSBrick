@@ -7,6 +7,7 @@ const flag_operation = 0x40; //set if last op was subtraction
 const flag_halfcarry = 0x20; //set if the lower half of the byte overflowed past 15 in last op
 const flag_carry = 0x10; //set if last operation was >255 or <0
 const interrupt_vblank = 0x01;
+const interrupt_tima = 0x04;
 var op = 0; //Used to write opcode to screen
 var debug_output = [];
 var call_trace = [];
@@ -27,7 +28,8 @@ var opcodes = [];
 var mem = [];
 var instructionNames = [];
 var tA, tB, tC, tD, tE, tF, tH, tL;
-
+var divTimer = 0;
+var timaTimer = 0;
 
 function wb(addr, val) //Write byte
 {
@@ -208,18 +210,56 @@ function execute_step()
 	var raised_interrupts = rb(0xFF0F);
 	if(interrupts_enabled && enabled_interrupts && raised_interrupts)
 	{ 
+		target = 0x00;
 		if((enabled_interrupts & raised_interrupts) & interrupt_vblank)
 		{
-			interrupts_enabled = false;
+			target = 0x40;
+			wb(0xFF0F, raised_interrupts & ~interrupt_vblank);
 			debug_out("vblank at pc " + PC.toString(16));
-			raised_interrupts &= ~interrupt_vblank;
-			wb(0xFF0F, raised_interrupts);
+		}
+		if((enabled_interrupts & raised_interrupts) & interrupt_tima)
+		{
+			target = 0x50;
+			wb(0xFF0F, raised_interrupts & ~interrupt_tima);
+			debug_out("tima at pc " + PC.toString(16));
+		}
+		if(target != 0)
+		{
+			interrupts_enabled = false;
 			SP-=2;
 			ww(SP, PC);
-			PC = 0x40;
+			PC = target;
 			store_register_states();
-			//proc_break = true;
 			totalClock += 32;
+		}
+	}
+	
+	//Update non-gpu timers
+	divTimer += lastClock;
+	if(divTimer > 0xFF)
+	{
+		divTimer &= 0xFF;
+		wb(0xFF04, (rb(0xFF04) + 1)&0xFF);
+	}
+	if(rb(0xFF07) & 0x04) //TIMA timer is on
+	{
+		timaTimer += lastClock;
+		var overflow = false
+		switch(rb(0xFF07) & 0x3)
+		{
+			case 0: if(timaTimer >= 1024) { overflow = true; timaTimer -= 1024; }break;
+			case 1: if(timaTimer >= 16) { overflow = true; timeTimer -= 16; } break;
+			case 2: if(timaTimer >= 64) { overflow = true; timaTimer -= 64; } break;
+			case 3: if(timaTimer >= 256) { overflow = true; timaTimer -= 256; } break;
+			default: debug_out("timer error");
+		}
+		if(overflow)
+		{
+			wb(0xFF05, (rb(0xFF05)+1)&0xFF);
+			if(rb(0xFF05) == 0)
+			{
+				wb(rb(0xFF0F) | interrupt_tima);
+			}
 		}
 	}
 	

@@ -87,7 +87,7 @@ function update_tables()
 	rows[10].cells[1].innerHTML = "0x" + PC.toString(16);
 	rows[11].cells[1].innerHTML = "0x" + op.toString(16);
 	rows[12].cells[1].innerHTML = execs;
-	rows[13].cells[1].innerHTML = totalClock;
+	rows[13].cells[1].innerHTML = lastClock;
 	rows[14].cells[1].innerHTML = gpu_mode;
 	rows[15].cells[1].innerHTML = gpu_timer;
 	rows[16].cells[1].innerHTML = gpu_scanline;
