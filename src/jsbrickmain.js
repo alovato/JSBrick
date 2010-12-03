@@ -1,50 +1,78 @@
-// This file is to contain the main JSBrick Javascript code. 
-var canvas;
-var imageData;
 var execs = 0;
+var repeat;
+var running = false;
+var just_drawn = false;
 
-// The run function should handle primary initialization tasks. This will
-// include running the dispatcher and running the draw() function at an
-// appropriate interval.
-function run() {
-    // Test
-    clearCanvas();
-}
-function run_for() {
-	var num = parseInt(prompt("Run how many instructions?", "1"));
-	for(i = 0; i < num-1; i += 1)
-	{
-		execute_gpu_step(execute_step());
-		execs++;
-	}
-	stepCPU();
-}
-
-// Step the CPU and update the register table with the current register values
-function stepCPU()
+function step_cpu()
 {
-    // Step the CPU
+	just_drawn = false;
 	execute_gpu_step(execute_step());
 	if(gpu_ready_to_draw)
-	{
-		
-		for(var j = 0; j < 144; j++)
-		{
-			for(var i = 0; i < 160; i++)
-			{
-				setPixel(imageData, 
-					i, j,
-					output_vram[(i+j*160)*4],
-					output_vram[(i+j*160)*4+1],
-					output_vram[(i+j*160)*4+2],
-					0xFF);
-			}
-		}
-		draw();
+	{		
+		paint();
 		gpu_ready_to_draw = false;
-		debug_out("Draw frame");
+		just_drawn = true;
 	}
 	execs += 1;
+}
+
+function run_frame(update)
+{
+	do
+	{
+		step_cpu();
+	}while(!just_drawn && !proc_break);
+	just_drawn = false;
+	if(proc_break) debug_out("break;");
+	if(update == 1) update_tables();
+	
+	proc_break = false;
+}
+function run_for()
+{
+	var num = parseInt(prompt("Run how many instructions?", "1"));
+	for(var i = 0; i < num-1; i += 1)
+	{
+		step_cpu();
+	}
+	update_tables();
+}
+function run_to()
+{
+	var num = parseInt(prompt("Run until PC equals (Enter in base 10)?", "256"));
+	while(PC != num & 0xFFFF && !proc_break)
+	{
+		step_cpu();
+	}
+	if(proc_break) debug_out("break: " + PC.toString(16));
+	proc_break = false;
+	update_tables();
+}
+
+function run_go()
+{
+	if(running)
+	{
+		//step_frame();
+		run_frame(0);
+	}
+	repeat = setInterval(run_go, 16);
+}
+function run_stop()
+{
+	clearInterval(repeat);
+	update_tables();
+	running = false;
+}
+
+function single_step()
+{
+	step_cpu();
+	update_tables();
+}
+
+function update_tables()
+{
     // Update table
     var rows = document.getElementById("regTable").rows;
     rows[1].cells[1].innerHTML = "0x" + A.toString(16);
@@ -63,6 +91,7 @@ function stepCPU()
 	rows[14].cells[1].innerHTML = gpu_mode;
 	rows[15].cells[1].innerHTML = gpu_timer;
 	rows[16].cells[1].innerHTML = gpu_scanline;
+	rows[17].cells[1].innerHTML = interrupts_enabled;
     
 	
 	rows = document.getElementById("debugOut").rows;
@@ -101,103 +130,60 @@ function stepCPU()
 	}
 }
 
-// Dumb function to draw random dots in the canvas so we can see where it is
-function clearCanvas() {
-    var canvas = document.getElementById("canvas");
-
-    init();
-	
-    width = parseInt(canvas.getAttribute("width"));
-    height = parseInt(canvas.getAttribute("height"));
-
-
-    for (i = 0; i < width; i++) 
+function dump_ram()
+{
+	var w = window.open("about:blank","mywindow","status=1"); 
+	w.document.write("<font size=\"2\" face=\"Courier New\">");
+	for(var i = 0; i <= 0x10000; i++)
 	{
-		for(j = 0; j < height; j++)
+		if(i%16 == 0)
 		{
-			setPixel(imageData, i, j, c_white, c_white, c_white, 0xFF); // 0xff opaque
+			w.document.write("[0x");
+			if(i <= 0x000F) w.document.write("0");
+			if(i <= 0x00FF) w.document.write("0");
+			if(i <= 0x0FFF) w.document.write("0");
+			w.document.write(i.toString(16) + "] ");
 		}
+		if(rb(i) <= 0xF) w.document.write("0");
+		w.document.write(rb(i).toString(16) + " ");
+		if((i+1)%16 == 0) w.document.write("<br>");
 	}
-
-    // Need to update the screen
-    draw();
+	w.document.write("</font>");
 }
 
-// This function initializes the imageData array
-function init() {
-    canvas = document.getElementById("canvas");
-    var ctx = canvas.getContext("2d");
+function dump_debug()
+{
+	var w2 = window.open("about:blank","mywindow1","status=1"); 
+	w2.document.write("<font size=\"2\" face=\"Courier New\">");
+	for(i = debug_output.length-1; i >= 0; i--)
+	{
+			w2.document.write(debug_output[i] + "<br>");
+	}
+	w2.document.write("</font>");
+}
 
-    width = parseInt(canvas.getAttribute("width"));
-    height = parseInt(canvas.getAttribute("height"));
-
-    imageData = ctx.createImageData(width, height);
-	
+function init()
+{	
 	reset(); //Reset our CPU, load our memory map, and go!
+	var temp = document.getElementById("canvas")
+	canvas = temp.getContext("2d");	
 	init_gpu();
-	
 	load_image("tetris.gb");
 	//This overwrites the first 255 bytes of the previosly loaded rom.
 	//Both need to be in memory to bypass a piracy check. Once the bios
 	//is done running it will overwrite that addressable space with tetris again.
-	load_image("bios.gb"); 
-	stepCPU();
-
-}
-
-// Set a pixel at (x, y) with the values of (r, g, b, a)
-function setPixel(imageData, x, y, r, g, b, a) {
-    index = (x + y * imageData.width) * 4;
-    imageData.data[index+0] = r;
-    imageData.data[index+1] = g;
-    imageData.data[index+2] = b;
-    imageData.data[index+3] = a;
+	//load_image("bios.gb"); 
+	
+	PC = 0x0100;
+	running_bios = false;
+	
+	single_step();
 }
 
 // The draw function will handle updating the screen to reflect the current
 // state of the game.
-function draw() {
-    // Get the canvas and a 2-dimensional context for drawing
-    var canvas = document.getElementById("canvas");  
-    var ctx = canvas.getContext("2d");  
-
-    // Update the canvas with the imageData
-    ctx.putImageData(imageData, 0, 0);
+function paint() {
+	output_vram.data = vram;
+    canvas.putImageData(output_vram, 0, 0);
 }  
-
-// Handle keyboard input.
-function handleInput(e) {
-    // Get the key that was pressed.
-    var key = e.keyCode;
-    var value = 0;
-
-    // Decide here how to actually handle the individual keys.
-    if (key == 65) {
-        // Start
-    }
-    else if (key == 90) {
-        // A
-        
-    }
-    else if (key == 88) {
-        // B
-    }
-    else if (key == 83) {
-        // Select
-    }
-    else if (key == 37) {
-        // Left
-    }
-    else if (key == 38) {
-        // Up
-    }
-    else if (key == 39) {
-        // Right
-    }
-    else if (key == 40) {
-        // Down
-    }
-
-}
-
 
