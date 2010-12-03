@@ -6,15 +6,17 @@
 <head> 
     <title> JSBrick </title>
     <script type="text/javascript" src="BinFileReader.js"></script>
-	<script type="text/javascript" src="proc.js"></script>
+	<script type="text/javascript" src="proc.js"></script>	
+	<script type="text/javascript" src="instructions.js"></script>
 	<script type="text/javascript" src="gpu.js"></script>
+	<script type="text/javascript" src="input.js"></script>
     <script type="text/javascript" src="jsbrickmain.js"></script>
 </head>
 
-<body onload="run()" onkeypress="handleInput(event)">
+<body onload="init()" bgcolor="EEEEEE">
 <center><h1>JSBrick</h1></center>
 <p>
-
+<font size="2" face="Courier New">
 <table width="100%" border="0" cellspacing="0" cellpadding="5">
 <tr>
 <td width="66%">
@@ -29,6 +31,7 @@
 <h2> Registers </h2>
 <p>
 <table id="regTable" border="1" width="33%">
+<font size="2" face="Courier New">
 <tr>
 <th> Register </th>
 <th>Value</th>
@@ -50,10 +53,19 @@
 <tr><td>GPU mode</td> <td> </td></tr>
 <tr><td>GPU timer</td> <td> </td></tr>
 <tr><td>Scanline</td> <td> </td></tr>
+<tr><td>Interrupts</td> <td> </td></tr>
+</font>
 </table>
 <p>
-<button type="button" onclick="stepCPU()">Execute Instruction</button>
-<button type="button" onclick="run_for()">Run for...</button>
+<button type="button" onclick="single_step()">Execute Instruction</button>
+<button type="button" onclick="run_for()">Execute for...</button>
+<button type="button" onclick="run_go(); running=true;">Run</button>
+<button type="button" onclick="run_stop()">Pause</button>
+<button type="button" onclick="run_frame(1)">Next Frame</button>
+<button type="button" onclick="run_to()">Run to PC...</button>
+<button type="button" onclick="dump_ram()">Dump Memory</button>
+<button type="button" onclick="dump_debug()">Dump Debug</button>
+<button type="button" onclick="dump_calls()">Dump Calls</button>
 </td>
 </table>
 <hr>
@@ -63,5 +75,6 @@
 <tr><td width = "50%"></td><td width = "25%"></td><td width = "25%"></td></tr>
 </font>
 </table>
+</font>
 </body>
 </html>
