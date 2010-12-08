@@ -1,7 +1,10 @@
 var execs = 0;
-var repeat;
 var running = false;
 var just_drawn = false;
+var repeat_interval = -1;
+
+var rom_to_load = "mario.gb";
+var run_bios = false;
 
 function step_cpu()
 {
@@ -49,6 +52,13 @@ function run_to()
 	update_tables();
 }
 
+function write_value()
+{
+	var ad = parseInt(prompt("What address (base 10)?", "0"));
+	var num = parseInt(prompt("What value (base 10)?", "0"));
+	wb(ad,num);
+}
+	
 function run_go()
 {
 	if(running)
@@ -56,13 +66,20 @@ function run_go()
 		//step_frame();
 		run_frame(0);
 	}
-	repeat = setInterval(run_go, 16);
+	if(repeat_interval == -1)
+	{
+		running = true;
+		var d = document.getElementById("regTable");
+		d.InnerHTML = "";
+		repeat_interval = setInterval(run_go, 16);
+	}
 }
 function run_stop()
 {
-	clearInterval(repeat);
+	clearInterval(repeat_interval);
 	update_tables();
 	running = false;
+	repeat_interval = -1;
 }
 
 function single_step()
@@ -162,6 +179,12 @@ function dump_debug()
 	w3.document.write("</font>");
 }
 
+function load_rom()
+{
+	rom_to_load = prompt("Enter the filename of the rom to load", "tetris.gb");
+	init();
+}
+
 function dump_calls()
 {
 	var w2 = window.open("about:blank","mywindow1","status=1"); 
@@ -181,11 +204,26 @@ function init()
 	var temp = document.getElementById("canvas")
 	canvas = temp.getContext("2d");	
 	init_gpu();
-	load_image("tetris.gb");
-	//This overwrites the first 255 bytes of the previosly loaded rom.
-	//Both need to be in memory to bypass a piracy check. Once the bios
-	//is done running it will overwrite that addressable space with tetris again.
-	load_image("bios.gb"); 
+	
+	if(repeat_interval != -1) clearInterval(repeat_interval);
+	update_tables();
+	running = false;
+	repeat_interval = -1;
+	
+	if(run_bios)
+	{
+		load_image(rom_to_load);
+		//This overwrites the first 255 bytes of the previosly loaded rom.
+		//Both need to be in memory to bypass a piracy check. Once the bios
+		//is done running it will overwrite that addressable space with tetris again.
+		load_image("bios.gb"); 
+	}
+	else
+	{
+		PC = 0x0100;
+		running_bios = false;
+		load_image(rom_to_load);
+	}
 
 	single_step();
 }
